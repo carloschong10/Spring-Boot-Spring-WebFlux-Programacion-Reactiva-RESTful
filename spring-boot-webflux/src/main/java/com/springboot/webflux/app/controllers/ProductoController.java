@@ -9,7 +9,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.thymeleaf.spring6.context.webflux.ReactiveDataDriverContextVariable;
 import reactor.core.publisher.Flux;
+
+import java.time.Duration;
 
 @Controller
 @RequestMapping("/productos")
@@ -36,4 +39,22 @@ public class ProductoController {
 
         return "listar";
     }
+
+    @GetMapping("/listarDataDriver")
+    public String listarDataDriver(Model model) {
+        Flux<Producto> productos = productoDao.findAll().map(producto -> {
+
+            producto.setNombre(producto.getNombre().toUpperCase());
+
+            return producto;
+        }).delayElements(Duration.ofSeconds(1));
+
+        productos.subscribe(prod -> log.info(prod.getNombre()));
+
+        model.addAttribute("productos", new ReactiveDataDriverContextVariable(productos, 2));
+        model.addAttribute("titulo", "Listado de Productos");
+
+        return "listar";
+    }
+
 }
