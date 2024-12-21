@@ -1,7 +1,7 @@
 package com.springboot.webflux.app.controllers;
 
-import com.springboot.webflux.app.dao.ProductoDao;
 import com.springboot.webflux.app.models.Producto;
+import com.springboot.webflux.app.services.ProductoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,18 +19,13 @@ import java.time.Duration;
 public class ProductoController {
 
     @Autowired
-    private ProductoDao productoDao;
+    private ProductoService productoService;
 
     private static final Logger log = LoggerFactory.getLogger(ProductoController.class);
 
     @GetMapping({"/listar", "/"})
     public String listar(Model model) {
-        Flux<Producto> productos = productoDao.findAll().map(producto -> {  //aca no es necesario hacer el subscribe ya que thymeleaf lo hace por debajo (es decir muestra los datos en una plantilla con thymeleaf, es decir la plantilla thymeleaf es el observador que se suscribe a este observable)
-
-            producto.setNombre(producto.getNombre().toUpperCase());
-
-            return producto;
-        });
+        Flux<Producto> productos = productoService.findAllConNombreUpperCase();
 
         productos.subscribe(prod -> log.info(prod.getNombre()));
 
@@ -42,12 +37,7 @@ public class ProductoController {
 
     @GetMapping("/listarDataDriver")
     public String listarDataDriver(Model model) {
-        Flux<Producto> productos = productoDao.findAll().map(producto -> {
-
-            producto.setNombre(producto.getNombre().toUpperCase());
-
-            return producto;
-        }).delayElements(Duration.ofSeconds(1));
+        Flux<Producto> productos = productoService.findAllConNombreUpperCase().delayElements(Duration.ofSeconds(1));
 
         productos.subscribe(prod -> log.info(prod.getNombre()));
 
@@ -59,12 +49,7 @@ public class ProductoController {
 
     @GetMapping("/listarFull")
     public String listarFull(Model model) {
-        Flux<Producto> productos = productoDao.findAll().map(producto -> {
-
-            producto.setNombre(producto.getNombre().toUpperCase());
-
-            return producto;
-        }).repeat(5000);
+        Flux<Producto> productos = productoService.findAllConNombreUpperCaseRepeat();
 
         productos.subscribe(prod -> log.info(prod.getNombre()));
 
@@ -76,13 +61,8 @@ public class ProductoController {
 
     @GetMapping("/listarChunked")
     public String listarChunked(Model model) {
-        Flux<Producto> productos = productoDao.findAll().map(producto -> {
-
-            producto.setNombre(producto.getNombre().toUpperCase());
-
-            return producto;
-        }).repeat(5000);
-
+        Flux<Producto> productos = productoService.findAllConNombreUpperCaseRepeat();
+        
         productos.subscribe(prod -> log.info(prod.getNombre()));
 
         model.addAttribute("productos", productos);
