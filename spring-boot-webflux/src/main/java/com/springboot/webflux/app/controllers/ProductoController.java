@@ -49,7 +49,7 @@ public class ProductoController {
     public Mono<String> guardar(Producto producto) {
         return productoService.save(producto).doOnNext(p -> {
             log.info("Producto Guardado: {} Id: {}", p.getNombre(), p.getId());
-        }).thenReturn("redirect:/listar");
+        }).thenReturn("redirect:/productos/listar");
     }
 
     @GetMapping("/listarDataDriver")
