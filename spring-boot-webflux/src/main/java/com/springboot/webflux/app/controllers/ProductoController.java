@@ -2,11 +2,13 @@ package com.springboot.webflux.app.controllers;
 
 import com.springboot.webflux.app.models.Producto;
 import com.springboot.webflux.app.services.ProductoService;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import org.thymeleaf.spring6.context.webflux.ReactiveDataDriverContextVariable;
@@ -14,6 +16,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.util.Date;
 
 @SessionAttributes("producto")
 @Controller
@@ -47,11 +50,20 @@ public class ProductoController {
     }
 
     @PostMapping("/form")
-    public Mono<String> guardar(Producto producto, SessionStatus sessionStatus) {
-        sessionStatus.setComplete();
-        return productoService.save(producto).doOnNext(p -> {
-            log.info("Producto Guardado: {} Id: {}", p.getNombre(), p.getId());
-        }).thenReturn("redirect:/productos/listar");
+    public Mono<String> guardar(@Valid @ModelAttribute("producto") Producto producto, BindingResult bindingResult, Model model, SessionStatus sessionStatus) { //BindingResult siempre tiene que ir al costado de @Valid
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("titulo", "Error en el Formulario Producto");
+            model.addAttribute("boton", "guardar");
+            return Mono.just("form");
+        } else {
+            sessionStatus.setComplete();
+            if (producto.getCreateAt() == null) {
+                producto.setCreateAt(new Date());
+            }
+            return productoService.save(producto).doOnNext(p -> {
+                log.info("Producto Guardado: {} Id: {}", p.getNombre(), p.getId());
+            }).thenReturn("redirect:/productos/listar?success=Producto+Guardado+Correctamente");
+        }
     }
 
     @GetMapping("/form/{id}")

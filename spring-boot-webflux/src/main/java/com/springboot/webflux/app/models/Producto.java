@@ -1,5 +1,7 @@
 package com.springboot.webflux.app.models;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -11,8 +13,10 @@ public class Producto {
     @Id
     private String id; //el id es alfanumerico en MongoDB
 
+    @NotEmpty
     private String nombre;
 
+    @NotNull
     private Double precio;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
