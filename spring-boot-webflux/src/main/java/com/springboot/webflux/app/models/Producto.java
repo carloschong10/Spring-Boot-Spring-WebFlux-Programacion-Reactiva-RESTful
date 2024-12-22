@@ -26,6 +26,8 @@ public class Producto {
     @Valid
     private Categoria categoria;
 
+    private String foto;
+
     public Producto(String nombre, Double precio) {
         this.nombre = nombre;
         this.precio = precio;
@@ -77,5 +79,13 @@ public class Producto {
 
     public void setCategoria(Categoria categoria) {
         this.categoria = categoria;
+    }
+
+    public String getFoto() {
+        return foto;
+    }
+
+    public void setFoto(String foto) {
+        this.foto = foto;
     }
 }
