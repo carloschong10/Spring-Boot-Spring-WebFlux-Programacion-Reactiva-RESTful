@@ -63,10 +63,17 @@ public class ProductoController {
             return Mono.just("form");
         } else {
             sessionStatus.setComplete();
-            if (producto.getCreateAt() == null) {
-                producto.setCreateAt(new Date());
-            }
-            return productoService.save(producto).doOnNext(p -> {
+
+            Mono<Categoria> categoria = productoService.findCategoriaById(producto.getCategoria().getId());
+
+            return categoria.flatMap(c -> {
+                if (producto.getCreateAt() == null) {
+                    producto.setCreateAt(new Date());
+                }
+                producto.setCategoria(c);
+                return productoService.save(producto);
+            }).doOnNext(p -> {
+                log.info("Categoria Seleccionada: {} Id Cat: {}", p.getCategoria().getNombre(), p.getCategoria().getId());
                 log.info("Producto Guardado: {} Id: {}", p.getNombre(), p.getId());
             }).thenReturn("redirect:/productos/listar?success=Producto+Guardado+Correctamente");
         }

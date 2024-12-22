@@ -1,5 +1,6 @@
 package com.springboot.webflux.app.models;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.annotation.Id;
@@ -22,6 +23,7 @@ public class Producto {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date createAt;
 
+    @Valid
     private Categoria categoria;
 
     public Producto(String nombre, Double precio) {
