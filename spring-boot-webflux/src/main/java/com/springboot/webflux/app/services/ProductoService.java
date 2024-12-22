@@ -1,5 +1,6 @@
 package com.springboot.webflux.app.services;
 
+import com.springboot.webflux.app.models.Categoria;
 import com.springboot.webflux.app.models.Producto;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -17,4 +18,10 @@ public interface ProductoService {
     public Mono<Producto> save(Producto producto);
 
     public Mono<Void> delete(Producto producto);
+
+    public Flux<Categoria> findAllCategoria();
+
+    public Mono<Categoria> findCategoriaById(String id);
+
+    public Mono<Categoria> saveCategoria(Categoria categoria);
 }
