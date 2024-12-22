@@ -66,12 +66,27 @@ public class ProductoController {
         }
     }
 
+    @GetMapping("/eliminar/{id}")
+    public Mono<String> eliminar(@PathVariable String id) {
+        return productoService.findById(id)
+                .doOnNext(p -> log.info("Producto a eliminar: {}", p.getNombre()))
+                .defaultIfEmpty(new Producto())
+                .flatMap(producto -> {
+                    if (producto.getId() == null) {
+                        return Mono.error(new InterruptedException("No existe el producto a eliminar"));
+                    }
+                    return Mono.just(producto);
+                })
+
+                .flatMap(productoService::delete)
+                .then(Mono.just("redirect:/productos/listar?Producto+Eliminado+Con+Exito"))
+                .onErrorResume(ex -> Mono.just("redirect:/productos/listar?error=no+existe+el+producto+a+eliminar"));
+    }
+
     @GetMapping("/form/{id}")
     public Mono<String> editar(@PathVariable(name = "id") String id, Model model) {
         Mono<Producto> productoMono = productoService.findById(id)
-                .doOnNext(p -> {
-                    log.info("Producto: " + p.getNombre());
-                })
+                .doOnNext(p -> log.info("Producto: {}", p.getNombre()))
                 .defaultIfEmpty(new Producto());
 
         model.addAttribute("titulo", "editarProducto");
