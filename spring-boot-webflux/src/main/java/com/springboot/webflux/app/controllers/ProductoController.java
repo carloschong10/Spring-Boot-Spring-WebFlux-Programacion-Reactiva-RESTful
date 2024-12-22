@@ -1,5 +1,6 @@
 package com.springboot.webflux.app.controllers;
 
+import com.springboot.webflux.app.models.Categoria;
 import com.springboot.webflux.app.models.Producto;
 import com.springboot.webflux.app.services.ProductoService;
 import jakarta.validation.Valid;
@@ -25,6 +26,11 @@ public class ProductoController {
 
     @Autowired
     private ProductoService productoService;
+
+    @ModelAttribute("categoriasList")
+    private Flux<Categoria> categorias() {
+        return productoService.findAllCategoria();
+    }
 
     private static final Logger log = LoggerFactory.getLogger(ProductoController.class);
 
