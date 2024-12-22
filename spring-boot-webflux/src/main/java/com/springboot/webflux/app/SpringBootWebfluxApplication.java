@@ -5,7 +5,6 @@ import com.springboot.webflux.app.dao.ProductoDao;
 import com.springboot.webflux.app.models.Categoria;
 import com.springboot.webflux.app.models.Producto;
 import com.springboot.webflux.app.services.ProductoService;
-import com.springboot.webflux.app.services.ProductoServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +13,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.util.Date;
 
@@ -22,12 +20,12 @@ import java.util.Date;
 public class SpringBootWebfluxApplication implements CommandLineRunner {
 
     //    @Autowired
-    private final ProductoServiceImpl productoService;
+    private final ProductoService productoService;
     private final ReactiveMongoTemplate reactiveMongoTemplate;
 
     private static final Logger log = LoggerFactory.getLogger(SpringBootWebfluxApplication.class);
 
-    public SpringBootWebfluxApplication(ProductoServiceImpl productoService, ReactiveMongoTemplate reactiveMongoTemplate) {
+    public SpringBootWebfluxApplication(ProductoService productoService, ReactiveMongoTemplate reactiveMongoTemplate) {
         this.productoService = productoService;
         this.reactiveMongoTemplate = reactiveMongoTemplate;
     }
