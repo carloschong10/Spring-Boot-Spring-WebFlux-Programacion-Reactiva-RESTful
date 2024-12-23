@@ -4,15 +4,19 @@ import com.webflux.apirest.spring_boot_webflux_apirest.models.Categoria;
 import com.webflux.apirest.spring_boot_webflux_apirest.models.Producto;
 import com.webflux.apirest.spring_boot_webflux_apirest.services.ProductoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.File;
 import java.net.URI;
 import java.util.Date;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/productos")
@@ -20,6 +24,9 @@ public class ProductoController {
 
     @Autowired
     ProductoService productoService;
+
+    @Value("${config.uploads.path}")
+    private String path;
 
     @GetMapping
     public Mono<ResponseEntity<Flux<Producto>>> lista() { //con ResponseEntity nos permite manejar la respuesta
@@ -73,5 +80,19 @@ public class ProductoController {
                     return productoService.delete(p)
                             .then(Mono.just(new ResponseEntity<Void>(HttpStatus.NO_CONTENT)));
                 }).defaultIfEmpty(new ResponseEntity<Void>(HttpStatus.NOT_FOUND));
+    }
+
+    @PostMapping("/upload/{id}")
+    public Mono<ResponseEntity<Producto>> upload(@PathVariable String id, @RequestPart(name = "file") FilePart part) {
+        return productoService.findById(id)
+                .flatMap(p -> {
+                    p.setFoto(UUID.randomUUID().toString() + "-" + part.filename()
+                            .replace(" ", "")
+                            .replace(":", "")
+                            .replace("\\", ""));
+                    return part.transferTo(new File(path + p.getFoto()))
+                            .then(productoService.save(p));
+                }).map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 }
