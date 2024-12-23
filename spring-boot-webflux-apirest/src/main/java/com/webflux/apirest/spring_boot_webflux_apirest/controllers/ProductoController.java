@@ -1,5 +1,6 @@
 package com.webflux.apirest.spring_boot_webflux_apirest.controllers;
 
+import com.webflux.apirest.spring_boot_webflux_apirest.models.Categoria;
 import com.webflux.apirest.spring_boot_webflux_apirest.models.Producto;
 import com.webflux.apirest.spring_boot_webflux_apirest.services.ProductoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,7 @@ public class ProductoController {
     }
 
     @PostMapping
-    public Mono<ResponseEntity<Producto>> guardar(@RequestBody Producto producto) {
+    public Mono<ResponseEntity<Producto>> crear(@RequestBody Producto producto) {
         if (producto.getCreateAt() == null) {
             producto.setCreateAt(new Date());
         }
@@ -48,5 +49,19 @@ public class ProductoController {
                 .map(p -> ResponseEntity.created(URI.create("/api/productos/" + p.getId()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(p));
+    }
+
+    @PutMapping("/{id}")
+    public Mono<ResponseEntity<Producto>> editar(@RequestBody Producto producto, @PathVariable String id) {
+        return productoService.findById(id)
+                .flatMap(p -> {
+                    p.setNombre(producto.getNombre());
+                    p.setPrecio(producto.getPrecio());
+                    p.setCategoria(producto.getCategoria());
+                    return productoService.save(p);
+                }).map(p -> ResponseEntity.created(URI.create("/api/productos/" + p.getId()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(p))
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 }
