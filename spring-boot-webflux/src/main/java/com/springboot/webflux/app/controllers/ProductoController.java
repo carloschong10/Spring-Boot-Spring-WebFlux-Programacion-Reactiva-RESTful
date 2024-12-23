@@ -48,6 +48,18 @@ public class ProductoController {
         return productoService.findAllCategoria();
     }
 
+    @GetMapping("/uploads/img/{nombreFoto:.+}")
+    public Mono<ResponseEntity<Resource>> verFoto(@PathVariable String nombreFoto) throws MalformedURLException {
+        Path ruta = Paths.get(path).resolve(nombreFoto).toAbsolutePath();
+        Resource imagen = new UrlResource(ruta.toUri());
+
+        return Mono.just(
+                ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + imagen.getFilename() + "\"")
+                        .body(imagen)
+        );
+    }
+
     @GetMapping("/ver/{id}")
     public Mono<String> verDetalle(Model model, @PathVariable String id) {
         return productoService.findById(id)
