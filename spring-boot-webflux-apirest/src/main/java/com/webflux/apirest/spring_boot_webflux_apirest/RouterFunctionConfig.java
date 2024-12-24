@@ -35,6 +35,7 @@ public class RouterFunctionConfig {
     @Bean
     public RouterFunction<ServerResponse> routes(ProductoHandler handler) {
         return route(GET("/api/v2/productos").or(GET("/api/v3/productos")), handler::listar)
-                .andRoute(GET("/api/v2/productos/{id}").or(GET("/api/v3/productos")), handler::findById);
+                .andRoute(GET("/api/v2/productos/{id}").or(GET("/api/v3/productos")), handler::findById)
+                .andRoute(POST("/api/v2/productos").or(POST("/api/v3/productos")).and(contentType(MediaType.APPLICATION_JSON)), handler::crear);
     }
 }

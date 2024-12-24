@@ -10,6 +10,9 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
+import java.util.Date;
+
 @Component
 public class ProductoHandler { //este seria como nuestro controlador o handler, lo importante es anotarlo con @Component y no con @Controller
 
@@ -29,5 +32,17 @@ public class ProductoHandler { //este seria como nuestro controlador o handler, 
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(BodyInserters.fromValue(p)))
                 .switchIfEmpty(ServerResponse.notFound().build());
+    }
+
+    public Mono<ServerResponse> crear(ServerRequest request) {
+        Mono<Producto> productoMono = request.bodyToMono(Producto.class);
+        return productoMono.flatMap(p -> {
+            if (p.getCreateAt() == null) {
+                p.setCreateAt(new Date());
+            }
+            return productoService.save(p);
+        }).flatMap(p -> ServerResponse.created(URI.create("/api/v2/productos/" + p.getId()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(p)));
     }
 }
