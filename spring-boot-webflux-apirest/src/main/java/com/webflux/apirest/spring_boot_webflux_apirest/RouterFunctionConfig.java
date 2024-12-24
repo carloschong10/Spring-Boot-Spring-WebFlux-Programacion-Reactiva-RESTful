@@ -40,6 +40,7 @@ public class RouterFunctionConfig {
                 .andRoute(PUT("/api/v2/productos/{id}").or(PUT("/api/v3/productos/{id}")).and(contentType(MediaType.APPLICATION_JSON)), handler::editar)
                 .andRoute(DELETE("/api/v2/productos/{id}").or(DELETE("/api/v3/productos/{id}")), handler::eliminar)
                 .andRoute(POST("/api/v2/productos/upload/{id}").or(POST("/api/v3/productos/upload/{id}")).and(contentType(MediaType.MULTIPART_FORM_DATA)), handler::upload)
+                .andRoute(POST("/api/v2/productos/crearConFoto").or(POST("/api/v3/productos/crearConFoto")).and(contentType(MediaType.MULTIPART_FORM_DATA)), handler::crearConFoto)
                 ;
     }
 }
