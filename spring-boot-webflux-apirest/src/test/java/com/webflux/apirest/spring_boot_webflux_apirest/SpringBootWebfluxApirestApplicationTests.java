@@ -103,4 +103,24 @@ class SpringBootWebfluxApirestApplicationTests {
                 });
     }
 
+    @Test
+    void editarTest() {
+        Producto producto = productoService.findByNombre("Producto 3").block();
+        Categoria categoria = productoService.findCategoriaByNombre("Muebles").block();
+
+        Producto productoEditado = new Producto("Asus Notebook", 700.99, categoria);
+
+        webTestClient.put().uri("/api/v2/productos/{id}", Collections.singletonMap("id", producto.getId()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(Mono.just(productoEditado), Producto.class)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.id").isNotEmpty()
+                .jsonPath("$.nombre").isEqualTo("Asus Notebook")
+                .jsonPath("$.precio").isEqualTo(700.99)
+                .jsonPath("$.categoria.nombre").isEqualTo("Muebles");
+    }
 }
