@@ -45,4 +45,20 @@ public class ProductoHandler { //este seria como nuestro controlador o handler, 
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(p)));
     }
+
+    public Mono<ServerResponse> editar(ServerRequest request) {
+        Mono<Producto> productoMono = request.bodyToMono(Producto.class);
+        String id = request.pathVariable("id");
+        Mono<Producto> productoMonoDb = productoService.findById(id);
+
+        return productoMonoDb.zipWith(productoMono, (pdb, preq) -> {
+                    pdb.setNombre(preq.getNombre());
+                    pdb.setPrecio(preq.getPrecio());
+                    pdb.setCategoria(preq.getCategoria());
+                    return pdb;
+                }).flatMap(p -> ServerResponse.created(URI.create("/api/v2/productos/" + p.getId()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(productoService.save(p), Producto.class))
+                .switchIfEmpty(ServerResponse.notFound().build());
+    }
 }
