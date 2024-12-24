@@ -34,6 +34,7 @@ public class RouterFunctionConfig {
     //segunda forma en un método de una clase handler
     @Bean
     public RouterFunction<ServerResponse> routes(ProductoHandler handler) {
-        return route(GET("/api/v2/productos").or(GET("/api/v3/productos")), handler::listar);
+        return route(GET("/api/v2/productos").or(GET("/api/v3/productos")), handler::listar)
+                .andRoute(GET("/api/v2/productos/{id}").or(GET("/api/v3/productos")), handler::findById);
     }
 }
