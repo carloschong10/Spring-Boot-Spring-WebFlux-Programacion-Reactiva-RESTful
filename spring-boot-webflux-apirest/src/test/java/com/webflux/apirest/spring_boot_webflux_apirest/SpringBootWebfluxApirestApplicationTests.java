@@ -1,5 +1,6 @@
 package com.webflux.apirest.spring_boot_webflux_apirest;
 
+import com.webflux.apirest.spring_boot_webflux_apirest.models.Categoria;
 import com.webflux.apirest.spring_boot_webflux_apirest.models.Producto;
 import com.webflux.apirest.spring_boot_webflux_apirest.services.ProductoService;
 import org.junit.jupiter.api.Assertions;
@@ -60,6 +61,46 @@ class SpringBootWebfluxApirestApplicationTests {
                 /*.expectBody()
                 .jsonPath("$.id").isNotEmpty()
                 .jsonPath("$.nombre").isEqualTo("Producto 4");*/
+    }
+
+    @Test
+    void crearTest() {
+        Categoria categoria = productoService.findCategoriaByNombre("Cocina").block();
+        Producto producto = new Producto("producto de ejemplo", 99.99, categoria);
+
+        webTestClient.post().uri("/api/v2/productos")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(Mono.just(producto), Producto.class)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.id").isNotEmpty()
+                .jsonPath("$.nombre").isEqualTo("producto de ejemplo")
+                .jsonPath("$.categoria.nombre").isEqualTo("Cocina");
+    }
+
+    @Test
+    void crearTest2() {
+        Categoria categoria = productoService.findCategoriaByNombre("Cocina").block();
+        Producto producto = new Producto("producto de ejemplo", 99.99, categoria);
+
+        webTestClient.post().uri("/api/v2/productos")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(Mono.just(producto), Producto.class)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody(Producto.class)
+                .consumeWith(response -> {
+                    Producto p = response.getResponseBody();
+
+                    Assertions.assertTrue(!p.getId().isEmpty());
+                    Assertions.assertTrue(p.getNombre().equals("producto de ejemplo"));
+                    Assertions.assertTrue(p.getCategoria().getNombre().equals("Cocina"));
+                });
     }
 
 }
