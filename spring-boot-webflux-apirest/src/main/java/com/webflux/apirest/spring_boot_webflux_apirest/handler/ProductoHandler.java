@@ -3,21 +3,30 @@ package com.webflux.apirest.spring_boot_webflux_apirest.handler;
 import com.webflux.apirest.spring_boot_webflux_apirest.models.Producto;
 import com.webflux.apirest.spring_boot_webflux_apirest.services.ProductoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.io.File;
 import java.net.URI;
 import java.util.Date;
+import java.util.UUID;
+
+import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
 @Component
 public class ProductoHandler { //este seria como nuestro controlador o handler, lo importante es anotarlo con @Component y no con @Controller
 
     @Autowired
     private ProductoService productoService;
+
+    @Value("${config.uploads.path}")
+    private String path;
 
     public Mono<ServerResponse> listar(ServerRequest request) {
         return ServerResponse.ok()
@@ -67,6 +76,26 @@ public class ProductoHandler { //este seria como nuestro controlador o handler, 
         Mono<Producto> productoMonoDb = productoService.findById(id);
 
         return productoMonoDb.flatMap(p -> productoService.delete(p).then(ServerResponse.noContent().build()))
+                .switchIfEmpty(ServerResponse.notFound().build());
+    }
+
+    public Mono<ServerResponse> upload(ServerRequest request) {
+        String id = request.pathVariable("id");
+
+        return request.multipartData().map(multipart -> multipart.toSingleValueMap().get("file"))
+                .cast(FilePart.class)
+                .flatMap(part -> productoService.findById(id)
+                        .flatMap(p -> {
+                            p.setFoto(UUID.randomUUID().toString() + "-" + part.filename()
+                                    .replace(" ", "")
+                                    .replace(":", "")
+                                    .replace("\\", ""));
+                            return part.transferTo(new File(path + p.getFoto()))
+                                    .then(productoService.save(p));
+                        }))
+                .flatMap(p -> ServerResponse.created(URI.create("/api/v2/productos/" + p.getId()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(BodyInserters.fromValue(p)))
                 .switchIfEmpty(ServerResponse.notFound().build());
     }
 }
