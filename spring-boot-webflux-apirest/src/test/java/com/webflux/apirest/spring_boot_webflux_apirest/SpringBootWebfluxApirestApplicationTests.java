@@ -123,4 +123,32 @@ class SpringBootWebfluxApirestApplicationTests {
                 .jsonPath("$.precio").isEqualTo(700.99)
                 .jsonPath("$.categoria.nombre").isEqualTo("Muebles");
     }
+
+    @Test
+    void eliminarTest() {
+        Producto producto = productoService.findByNombre("Producto 1").block();
+
+        webTestClient.delete().uri("/api/v2/productos/{id}", Collections.singletonMap("id", producto.getId()))
+                .exchange()
+                .expectStatus().isNoContent()
+                .expectBody()
+                .isEmpty();
+    }
+
+    @Test
+    void eliminarTest2() {
+        Producto producto = productoService.findByNombre("Producto 2").block();
+
+        webTestClient.delete().uri("/api/v2/productos/{id}", Collections.singletonMap("id", producto.getId()))
+                .exchange()
+                .expectStatus().isNoContent()
+                .expectBody()
+                .isEmpty();
+
+        webTestClient.get().uri("/api/v2/productos/{id}", Collections.singletonMap("id", producto.getId()))
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectBody()
+                .isEmpty();
+    }
 }
