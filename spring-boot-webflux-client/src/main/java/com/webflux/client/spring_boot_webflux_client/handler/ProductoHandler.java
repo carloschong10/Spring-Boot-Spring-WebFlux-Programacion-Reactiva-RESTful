@@ -5,6 +5,7 @@ import com.webflux.client.spring_boot_webflux_client.services.ProductoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -76,5 +77,18 @@ public class ProductoHandler {
 
         return productoService.delete(id)
                 .then(ServerResponse.noContent().build());
+    }
+
+    public Mono<ServerResponse> cargarFoto(ServerRequest request) {
+        String id = request.pathVariable("id");
+
+        return request.multipartData()
+                .map(multipart -> multipart.toSingleValueMap().get("file"))
+                .cast(FilePart.class)
+                .flatMap(part -> productoService.upload(part, id))
+                .flatMap(p -> ServerResponse
+                        .created(URI.create("/api/client/" + p.getId()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(p));
     }
 }
