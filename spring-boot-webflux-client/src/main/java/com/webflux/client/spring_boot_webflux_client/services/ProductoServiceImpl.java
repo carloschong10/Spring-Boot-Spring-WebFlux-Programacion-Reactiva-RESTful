@@ -48,6 +48,7 @@ public class ProductoServiceImpl implements ProductoService {
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(producto))
+//                .bodyValue(producto)
                 .retrieve().bodyToMono(Producto.class);
     }
 
@@ -57,7 +58,8 @@ public class ProductoServiceImpl implements ProductoService {
                 .uri("/{id}", Collections.singletonMap("id", id))
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(producto))
+//                .body(BodyInserters.fromValue(producto))
+                .bodyValue(producto)
                 .retrieve().bodyToMono(Producto.class);
     }
 
@@ -68,4 +70,6 @@ public class ProductoServiceImpl implements ProductoService {
                 .exchangeToMono(response -> response.bodyToMono(Void.class))
                 .then();
     }
+
+
 }
