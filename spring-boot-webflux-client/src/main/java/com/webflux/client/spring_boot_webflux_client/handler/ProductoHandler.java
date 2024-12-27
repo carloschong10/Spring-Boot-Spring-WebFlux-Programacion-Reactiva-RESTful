@@ -34,4 +34,33 @@ public class ProductoHandler {
                         .bodyValue(p))
                 .switchIfEmpty(ServerResponse.notFound().build());
     }
+
+    public Mono<ServerResponse> crear(ServerRequest request) {
+        Mono<Producto> productoMono = request.bodyToMono(Producto.class);
+
+        return productoMono.flatMap(p -> {
+            if (p.getCreateAt() == null)
+                p.setCreateAt(new Date());
+            return productoService.save(p);
+        }).flatMap(p -> ServerResponse.created(URI.create("/api/client/" + p.getId()))
+                .contentType(MediaType.APPLICATION_JSON)
+//                .body(BodyInserters.fromValue(p)));
+                .bodyValue(p));
+    }
+
+    public Mono<ServerResponse> editar(ServerRequest request) {
+        Mono<Producto> productoMono = request.bodyToMono(Producto.class);
+        String id = request.pathVariable("id");
+
+        return productoMono.flatMap(p -> ServerResponse.created(URI.create("/api/client/" + id))
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(productoService.update(p, id), Producto.class));
+    }
+
+    public Mono<ServerResponse> eliminar(ServerRequest request) {
+        String id = request.pathVariable("id");
+
+        return productoService.delete(id)
+                .then(ServerResponse.noContent().build());
+    }
 }

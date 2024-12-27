@@ -13,6 +13,9 @@ public class RouterConfig {
     public RouterFunction<ServerResponse> routes(ProductoHandler handler) {
         return RouterFunctions.route(RequestPredicates.GET("/api/client"), handler::listar)
                 .andRoute(RequestPredicates.GET("/api/client/{id}"), handler::buscarPorId)
+                .andRoute(RequestPredicates.POST("/api/client"), handler::crear)
+                .andRoute(RequestPredicates.PUT("/api/client/{id}"), handler::editar)
+                .andRoute(RequestPredicates.DELETE("/api/client/{id}"), handler::eliminar)
                 ;
     }
 }
