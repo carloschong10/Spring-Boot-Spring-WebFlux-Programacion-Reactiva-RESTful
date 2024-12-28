@@ -15,6 +15,7 @@ import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.util.Date;
+import java.util.Map;
 
 @Component
 public class ProductoHandler {
@@ -35,7 +36,23 @@ public class ProductoHandler {
                         .contentType(MediaType.APPLICATION_JSON)
 //                        .body(BodyInserters.fromValue(p)))
                         .bodyValue(p))
-                .switchIfEmpty(ServerResponse.notFound().build());
+                .switchIfEmpty(ServerResponse.notFound().build())
+                .onErrorResume(error -> {
+                    WebClientResponseException errorResponse = (WebClientResponseException) error;
+
+                    if (errorResponse.getStatusCode() == HttpStatus.NOT_FOUND) {
+//                        return ServerResponse.notFound().build();
+                        //si queremos retornar no un error sin contenido, sino un error genérico podemos hacerlo de la sgte forma construyendo el json personalizado:
+                        Map<String, Object> body = Map.of(
+                                "error", "No existe el producto: " + errorResponse.getMessage(),
+                                "fecha", new Date(),
+                                "status", errorResponse.getStatusCode().value()
+                        );
+                        return ServerResponse.status(HttpStatus.NOT_FOUND)
+                                .bodyValue(body);
+                    }
+                    return Mono.error(errorResponse);
+                });
     }
 
     public Mono<ServerResponse> crear(ServerRequest request) {
@@ -67,16 +84,35 @@ public class ProductoHandler {
         Mono<Producto> productoMono = request.bodyToMono(Producto.class);
         String id = request.pathVariable("id");
 
-        return productoMono.flatMap(p -> ServerResponse.created(URI.create("/api/client/" + id))
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(productoService.update(p, id), Producto.class));
+        return productoMono
+                .flatMap(p -> productoService.update(p, id)) //movimos el servicio para acá porque sino lo encapsularia y no ejecutaria el .onErrorResume(error -> {})
+                .flatMap(p -> ServerResponse.created(URI.create("/api/client/" + p.getId()))
+                        .contentType(MediaType.APPLICATION_JSON)
+//                        .body(BodyInserters.fromValue(p)));
+                        .bodyValue(p))
+                .onErrorResume(error -> {
+                    WebClientResponseException errorResponse = (WebClientResponseException) error;
+
+                    if (errorResponse.getStatusCode() == HttpStatus.NOT_FOUND) {
+                        return ServerResponse.notFound().build();
+                    }
+                    return Mono.error(errorResponse);
+                });
     }
 
     public Mono<ServerResponse> eliminar(ServerRequest request) {
         String id = request.pathVariable("id");
 
         return productoService.delete(id)
-                .then(ServerResponse.noContent().build());
+                .then(ServerResponse.noContent().build())
+                .onErrorResume(error -> {
+                    WebClientResponseException errorResponse = (WebClientResponseException) error;
+
+                    if (errorResponse.getStatusCode() == HttpStatus.NOT_FOUND) {
+                        return ServerResponse.notFound().build();
+                    }
+                    return Mono.error(errorResponse);
+                });
     }
 
     public Mono<ServerResponse> cargarFoto(ServerRequest request) {
@@ -89,6 +125,14 @@ public class ProductoHandler {
                 .flatMap(p -> ServerResponse
                         .created(URI.create("/api/client/" + p.getId()))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(p));
+                        .bodyValue(p))
+                .onErrorResume(error -> {
+                    WebClientResponseException errorResponse = (WebClientResponseException) error;
+
+                    if (errorResponse.getStatusCode() == HttpStatus.NOT_FOUND) {
+                        return ServerResponse.notFound().build();
+                    }
+                    return Mono.error(errorResponse);
+                });
     }
 }

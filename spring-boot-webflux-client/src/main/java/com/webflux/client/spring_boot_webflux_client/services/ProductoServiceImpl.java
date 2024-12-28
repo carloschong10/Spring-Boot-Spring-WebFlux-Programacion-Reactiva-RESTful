@@ -69,9 +69,9 @@ public class ProductoServiceImpl implements ProductoService {
     @Override
     public Mono<Void> delete(String id) {
         return webClient.delete().uri("/{id}", Collections.singletonMap("id", id))
-//                .retrieve().bodyToMono(Void.class);
-                .exchangeToMono(response -> response.bodyToMono(Void.class))
-                .then();
+                .retrieve().bodyToMono(Void.class); //es mejor usar el retrieve ya que el retrieve lanza una excepcion WebClientResponseException en caso no encuentre el Producto por el Id, y esta excepcion la podemos controlar en el Controlador ProductoHandler con un .onErrorResume(error -> {})
+//                .exchangeToMono(response -> response.bodyToMono(Void.class))
+//                .then();
     }
 
     @Override
