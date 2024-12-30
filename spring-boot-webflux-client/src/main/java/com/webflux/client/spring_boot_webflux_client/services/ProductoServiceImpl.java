@@ -20,11 +20,11 @@ import java.util.Map;
 public class ProductoServiceImpl implements ProductoService {
 
     @Autowired
-    private WebClient webClient;
+    private WebClient.Builder webClient;
 
     @Override
     public Flux<Producto> findAll() {
-        return webClient.get() //ya no es necesario poner la url porque ya la tenemos configurada dentro de AppConfig
+        return webClient.build().get() //ya no es necesario poner la url porque ya la tenemos configurada dentro de AppConfig
                 .accept(MediaType.APPLICATION_JSON)
 //                .exchangeToFlux(response -> response.bodyToFlux(Producto.class));
                 .retrieve().bodyToFlux(Producto.class);
@@ -40,14 +40,14 @@ public class ProductoServiceImpl implements ProductoService {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchangeToMono(response -> response.bodyToMono(Producto.class));
          */
-        return webClient.get().uri("/{id}", Collections.singletonMap("id", id))
+        return webClient.build().get().uri("/{id}", Collections.singletonMap("id", id))
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve().bodyToMono(Producto.class);
     }
 
     @Override
     public Mono<Producto> save(Producto producto) {
-        return webClient.post()
+        return webClient.build().post()
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(producto))
@@ -57,7 +57,7 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     public Mono<Producto> update(Producto producto, String id) {
-        return webClient.put()
+        return webClient.build().put()
                 .uri("/{id}", Collections.singletonMap("id", id))
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -68,7 +68,7 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     public Mono<Void> delete(String id) {
-        return webClient.delete().uri("/{id}", Collections.singletonMap("id", id))
+        return webClient.build().delete().uri("/{id}", Collections.singletonMap("id", id))
                 .retrieve().bodyToMono(Void.class); //es mejor usar el retrieve ya que el retrieve lanza una excepcion WebClientResponseException en caso no encuentre el Producto por el Id, y esta excepcion la podemos controlar en el Controlador ProductoHandler con un .onErrorResume(error -> {})
 //                .exchangeToMono(response -> response.bodyToMono(Void.class))
 //                .then();
@@ -83,7 +83,7 @@ public class ProductoServiceImpl implements ProductoService {
                     h.setContentDispositionFormData("file", filePart.filename());
                 });
 
-        return webClient.post()
+        return webClient.build().post()
                 .uri("/upload/{id}", Map.of("id", id))
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .bodyValue(parts.build())
